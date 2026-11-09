@@ -1,0 +1,356 @@
+\documentclass[11pt]{article}
+
+% "preprint" = named authors and page numbers (the ACL template's non-anonymous mode)
+\usepackage[preprint]{acl}
+
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\IfFileExists{inconsolata.sty}{\usepackage{inconsolata}}{}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ---------------------------------------------------------------- draft markers (set \draftfalse before submitting)
+% ---- Before compiling the final version, fill in these two lines ----
+\newcommand{\repolink}{\url{https://github.com/USERNAME/comp8240-santext}} % your GitHub repository URL
+\newcommand{\scholarcites}{NNN} % Google Scholar ``Cited by'' count for Yue et al. (2021)
+\newif\ifdraft \draftfalse
+\ifdraft
+  \newcommand{\todo}[1]{{\color{red}\textbf{[TODO: #1]}}}
+  \newcommand{\verify}[1]{{\color{orange}#1}}  % numbers to confirm against the notebook outputs
+  \newcommand{\res}[1]{{\color{blue}#1}}  % results still to come from today's runs
+\else
+  \newcommand{\todo}[1]{}
+  \newcommand{\verify}[1]{#1}
+  \newcommand{\res}[1]{#1}
+\fi
+\newcommand{\santext}{\textsc{SanText}}
+\newcommand{\santextp}{\textsc{SanText}+}
+\newcommand{\tab}{\,{\color{gray}\textbar}\,}  % a TAB in the data snippets
+
+\title{Replicating \santext{} and Testing It on Sensitive Health and Banking Text}
+
+\author{Ayush Mahesh Ghore \\
+  Macquarie University \\
+  \texttt{ayushmahesh.ghore@students.mq.edu.au}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\santext{} \citep{yue-etal-2021-differential} protects text under local differential privacy by replacing every word with a word sampled near it in embedding space, and reports that BERT fine-tuned on sanitized text keeps much of its accuracy. We replicate its utility and privacy experiments with the released code, and apply it to two datasets with real privacy stakes: Dreaddit, Reddit posts about stress, and a new dataset of 2,712 Australian health- and banking-app reviews, 100 of which we annotated for personal disclosures. Utility replicates closely (\santextp{} within 0.7 points on SST-2), but two runs with the same seed differ by up to 3.7 points because the sanitizer is not reproducible, and we document eight problems in the released code. The privacy claim holds only in part: at $\varepsilon = 16$ the attack's defense rate rises by 21 points, as reported, but accuracy falls by 8.3 points, not 4\%. On the new data, utility carries over (93\% of Dreaddit's $F_1$ and 94\% of the reviews' accuracy at $\varepsilon = 3$), but privacy does not. Rare words, the kind that identify people, survive more often than frequent ones (88\% against 64\%). In our reviews, 85\% of the words annotators flagged as personal disclosures survive, as do a full name and a date of birth in one review, and an LLM judge, checked against human ratings, finds that every disclosing review still reveals what it disclosed. We release our code, the annotated test split of the reviews and our guidelines.\footnote{Code, data and annotation guidelines: \repolink.}
+\end{abstract}
+
+% =====================================================================================================
+\section{The Paper and Why We Chose It}
+\label{sec:paper}
+
+Text sent to an NLP service often reveals more than the task needs: a review of a diabetes app can mention the writer's diagnosis, and a complaint to a bank can mention their debts. \citet{yue-etal-2021-differential} protect such text \emph{before} it leaves the user's device, by rewriting it under local differential privacy (LDP), so the service only ever sees sanitized text.\footnote{Paper: \url{https://aclanthology.org/2021.findings-acl.337}; code: \url{https://github.com/xiangyue9607/SanText}.}
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.0cm}LLL@{}}
+\toprule
+ & \textbf{SST-2} & \textbf{QNLI} & \textbf{MedSTS} (``CliniSTS'' in the code) \\
+\midrule
+Source & Rotten Tomatoes movie reviews \citep{pang-lee-2005-seeing}, parsed into the Stanford Sentiment Treebank \citep{socher-etal-2013-recursive} & SQuAD~1.1: crowd-written questions on Wikipedia paragraphs \citep{rajpurkar-etal-2016-squad} & 3 million de-identified notes of Mayo Clinic primary-care patients \citep{wang2020medsts} \\
+Construction & 11,855 sentences, 215,154 phrases with crowd-sourced sentiment; GLUE keeps binary labels and drops neutral \citep{wang2019glue} & each question paired with every sentence of its paragraph; low-overlap pairs removed; an artefact fixed in the updated release \citep{wang2019glue} & 174,629 sentence pairs with surface similarity $\ge 0.45$; a subset scored 0--5 by two clinical experts (weighted $\kappa = 0.67$) \\
+Task, labels & sentiment: 0 negative, 1 positive & does the sentence contain the answer? \texttt{entailment} or \texttt{not\_entailment} & similarity score, mean of the two experts \\
+Size (train / dev / test) & 67,349 / 872 / 1,821 (test unlabelled); training items include phrases & 104,743 / 5,463 / 5,463 (test unlabelled) & 1,068 annotated pairs; 1,642 / 412 in the 2019 n2c2 release \citep{wang2020n2c2} \\
+Metric (paper, no privacy) & accuracy (0.9251) & accuracy (0.9090) & Pearson $r$ (0.8527) \\
+Vocabulary $|V|$, paper (ours) & 14,730 (14,700) & 88,159 (87,751) & 3,320 \\
+Fields the code reads & sentence, label & question and sentence, sanitized separately; label & sentences in columns 8--9 of STS-B's 10-column layout; score \\
+Access & public (GLUE) & public (GLUE) & data use agreement \\
+\bottomrule
+\end{tabularx}
+\caption{The paper's three datasets. Sizes, label balance and lengths were measured from the GLUE files the code downloads. The paper's results with GloVe at $\varepsilon = 1/2/3$ are: QNLI 0.54/0.56/0.81 (\santext) and 0.77/0.78/0.81 (\santextp); MedSTS 0.04/0.54/0.82 and 0.50/0.71/0.82.}
+\label{tab:datasets}
+\end{table*}
+
+\paragraph{Method.} Their base mechanism, \santext{}, replaces every token $x$ by a token $y$ drawn from the vocabulary $V$ with probability
+\begin{equation}
+  \Pr[y \mid x] \propto \exp\!\big(-\tfrac{\varepsilon}{2}\, \lVert \phi(x)-\phi(y) \rVert_2\big),
+  \label{eq:santext}
+\end{equation}
+where $\phi$ is a word embedding (GloVe, or BERT's input embeddings). This is the exponential mechanism \citep{mcsherry2007mechanism} with a distance as its score, and it satisfies metric LDP \citep{chatzikokolakis2013broadening}: the smaller the privacy parameter $\varepsilon$, the further a replacement can drift. Unlike earlier work that adds noise to an embedding and snaps it to the nearest word \citep{feyisetan2020privacy}, \santext{} samples the replacement directly, and keeps sentence length and word order. \santextp{} spends the budget unevenly: the rarest $w$ of the vocabulary ($w=0.9$) is treated as sensitive and always sanitized, while every other word is kept with probability $1-p$ ($p=0.3$) and otherwise replaced by a sensitive word, which satisfies a new utility-optimised variant of metric LDP. The paper also adapts BERT to sanitized text, by fine-tuning it on sanitized data and, optionally, pre-training it on a sanitized corpus.
+
+\paragraph{Evaluation framework.} Utility is measured by fine-tuning BERT on the sanitized training set and scoring it on the sanitized evaluation set: accuracy for SST-2 and QNLI, and Pearson correlation for the clinical MedSTS, which uses ClinicalBERT \citep{alsentzer-etal-2019-publicly}. With GloVe embeddings at $\varepsilon = 1, 2, 3$, \santext{} reaches 0.51, 0.58 and 0.84 accuracy on SST-2 and \santextp{} 0.78, 0.79 and 0.85, against 0.925 without sanitization; random replacement (0.50) and the mechanism of \citet{feyisetan2020privacy} (0.51--0.53) stay near chance. QNLI and MedSTS follow the same pattern (Table~\ref{tab:datasets}). Privacy is measured empirically by a \emph{mask token inference attack}: each sanitized token is replaced by \texttt{[MASK]}, a pretrained BERT predicts it, and the \emph{defense rate} is the share of tokens whose original is not recovered. With BERT embeddings, \santext{} ``improves the defense rate by 20\% with only a 4\% utility loss on the SST-2 dataset'' at $\varepsilon = 16$, where Table~3 of the paper gives an accuracy of 0.8698. Sanitization-aware pre-training adds about 1.5 points.
+
+\paragraph{Why this paper.} Findings of ACL-IJCNLP 2021 shares ACL's reviewing. ACL is ranked A* by CORE, which does not rank Findings volumes separately, and a citation analysis places them ``at least'' at A level.\footnote{CORE portal: \url{https://portal.core.edu.au/conf-ranks/}; KInIT analysis of Findings citations (2024): \url{https://kinit.sk/?p=33630}.} The paper has \scholarcites{} citations on Google Scholar (November 2026), is a standard baseline for later sanitizers such as CusText \citep{chen-etal-2023-customized}, and is the target of reconstruction attacks \citep{tong-etal-2025-vulnerability}. Its code is public under the MIT licence, its sanitizer runs on a CPU, and two of its three datasets are public. It continues the unit's theme of privacy-preserving text representations \citep{li-etal-2018-towards}, but protects the text itself. Finally, word-level differential privacy is known to have limits \citep{mattern-etal-2022-limits}, and the paper tests privacy with a single attack, so a replication can usefully ask whether its privacy evidence holds.
+We ask three questions. \textbf{RQ1}: do the released code and data reproduce the paper's utility and privacy results? \textbf{RQ2}: does the utility carry over to longer, informal text with real privacy stakes? \textbf{RQ3}: does \santext{} hide what \emph{people} consider sensitive, judged by human annotators and by an LLM judge?
+
+% =====================================================================================================
+\section{The Original Datasets}
+\label{sec:datasets}
+
+
+\begin{figure}[t]
+\centering
+\scriptsize
+\setlength{\fboxsep}{4pt}
+\fbox{\parbox{0.94\columnwidth}{\raggedright
+\textbf{SST-2} \texttt{train.tsv} (sentence, label)\\
+\texttt{hide new secretions from the parental units\tab 0}\\
+\texttt{contains no wit , only labored gags\tab 0}\\[3pt]
+\textbf{QNLI} \texttt{dev.tsv} (index, question, sentence, label)\\
+\texttt{0\tab What came into force after the new constitution was herald?\tab As of that day, the new constitution heralding the Second Republic came into force.\tab entailment}\\[3pt]
+\textbf{MedSTS}, published example \citep[Table~1]{wang2020medsts}\\
+\texttt{Albuterol [PROVENTIL/VENTOLIN] 90 mcg/Act HFA Aerosol 2 puffs by inhalation every 4 hours as needed.\tab Albuterol [PROVENTIL/VENTOLIN] 90 mcg/Act HFA Aerosol 1-2 puffs by inhalation every 4 hours as needed \#1 each.\tab 5.0}
+}}
+\caption{Snippets of the original data (\tab{} marks a tab). SST-2 is lower-cased and tokenized; QNLI is raw text; MedSTS is not public, so we show the example pair published in its paper.}
+\label{fig:snippets}
+\end{figure}
+
+The paper evaluates on three English datasets (Table~\ref{tab:datasets}, Figure~\ref{fig:snippets}). It describes them in one sentence each and gives no sizes, so we measured them from the files the code downloads.
+
+\paragraph{SST-2.} The Stanford Sentiment Treebank parses 11,855 sentences from Rotten Tomatoes reviews into 215,154 phrases, each with a crowd-sourced sentiment label \citep{socher-etal-2013-recursive}. GLUE's binary version keeps positive and negative labels only \citep{wang2019glue}. Its 67,349 training items are mostly phrases (on average 9.4 words, 56\% positive), while the 872 development sentences are whole (19.5 words, 51\% positive). The text is lower-cased and pre-tokenized (\textit{it 's}), which matters for \santext{} because GloVe is case-sensitive. GLUE withholds test labels, so the paper's results are on the development set, as are ours.
+
+\paragraph{QNLI.} GLUE builds QNLI from SQuAD~1.1, where crowd workers wrote questions about Wikipedia paragraphs \citep{rajpurkar-etal-2016-squad}. Each question is paired with every sentence of its paragraph and labelled \texttt{entailment} if the sentence contains the answer. Pairs with low lexical overlap are removed, so word overlap alone is not a reliable cue \citep{wang2019glue}; the two labels are equally frequent (52,377 and 52,366 training pairs). The code downloads the updated release, which fixes an artefact of the first. Each row holds an index, a question (10 words on average), a sentence (27) and a label. \santext{} sanitizes the question and the sentence as separate documents. This makes QNLI's vocabulary by far the largest of the three (88,159 words), which is why it could not be sanitized in memory (§\ref{sec:replication}).
+
+\paragraph{MedSTS (CliniSTS).} The third dataset is clinical: sentence pairs from Mayo Clinic notes, scored for semantic similarity \citep{wang2020medsts}. Its creators extracted 14.9 million unique sentences from 3 million de-identified notes and kept 174,629 pairs whose averaged surface similarity was at least 0.45. Two clinical experts scored a subset from 0 (unrelated) to 5 (equivalent), with a weighted $\kappa$ of 0.67, and the gold score is their mean. The abstract of the same paper reports 1,068 annotated pairs but its method section 1,250. A 2019 shared task extended the data to 1,642 training and 412 test pairs from two more record systems \citep{wang2020n2c2}. Access requires a data use agreement, which we did not apply for, so MedSTS is the one dataset we could not replicate. The paper does not say which release it used. Its vocabulary of 3,320 GloVe words fits the smaller first release (54,161 tokens) better than the 2,054-pair one, but this is our inference. The code expects the ten-column layout of GLUE's STS-B and sanitizes the two sentences in columns 8 and 9. Two public datasets with health and financial content stand in for it in our extension (§\ref{sec:newdata}).
+
+\paragraph{Embeddings and pre-training corpus.} The vocabulary $V$ and the distances in Eq.~\ref{eq:santext} come from GloVe 840B, 2.2 million cased 300-dimensional vectors trained on Common Crawl \citep{pennington-etal-2014-glove}, or from the 30,522 WordPiece embeddings of \texttt{bert-base-uncased} \citep{devlin-etal-2019-bert}. With GloVe, $V$ is the set of words that occur in the task's own training and development text; words without a vector are replaced uniformly at random. Sanitization-aware pre-training uses WikiCorpus, about 600 million words \citep{reese2010wikicorpus}. We did not replicate it, because of its cost.
+
+% =====================================================================================================
+\section{Replication}
+\label{sec:replication}
+
+\subsection{Environment and pipeline}
+All runs used Google Colab: an NVIDIA T4 GPU, 2 CPU cores and 13.6\,GB of RAM, with Python 3.13.16, PyTorch 2.14.1, Transformers 5.22.1 and spaCy 3.8.18 (run~1 and the first review runs, on 9 October: Python 3.13.15, PyTorch 2.11.0, Transformers 5.18.0). The code was the authors' latest commit (\texttt{9c35f6e}, March 2022), and the notebooks resume after a disconnect (Appendix~\ref{app:repro}). The pipeline follows the paper's threat model: text is sanitized on the user's side, and only sanitized text reaches the service that fine-tunes the model.
+
+\textbf{Sanitization} runs the authors' \texttt{run\_SanText.py} unchanged. To make each run load in seconds, we give it a GloVe file pre-filtered to the words it can use; in our tests this leaves its output byte-identical. \textbf{Fine-tuning} could not use the authors' \texttt{run\_glue.py}. It imports Transformers 3.3.1 modules that were removed in version 4.0, and 3.3.1 cannot be installed on a current Python because its tokenizer dependency has no compatible build. We re-implemented it with the paper's settings: \texttt{bert-base-uncased}, maximum length 128, batch 64, learning rate $2\times10^{-5}$, three epochs, AdamW without weight decay or warm-up, and seed 42. Batches are padded to their longest example instead of to 128 tokens, which changes the speed but not the computation. As in the paper, models train on sanitized training data and are scored on the sanitized development set.
+
+\subsection{Utility on SST-2}
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+ & $\varepsilon$ & Paper & Run 1 & Run 2 & Unch. \\
+\midrule
+None & -- & 0.9251 & 0.9266 & 0.9266 & 100\% \\
+\santext & 1 & 0.5101 & 0.5424 & 0.5057 & 0.3\% \\
+ & 2 & 0.5838 & 0.5929 & 0.5940 & 13.7\% \\
+ & 3 & 0.8374 & 0.8509 & 0.8326 & 74.3\% \\
+\santextp & 1 & 0.7796 & -- & 0.7833 & 55.2\% \\
+ & 2 & 0.7943 & -- & 0.8016 & 60.2\% \\
+ & 3 & 0.8516 & -- & 0.8486 & 74.4\% \\
+\bottomrule
+\end{tabular}
+\caption{SST-2 development accuracy with GloVe embeddings, against the paper's Table~1. Runs 1 and 2 (9 October and 9 November) use the same code, data and seed (42). ``Unch.'' is the share of development tokens left unchanged in run 2. With seed 43 instead, the unsanitized baseline scores 0.9209.}
+\label{tab:sst2}
+\end{table}
+
+Table~\ref{tab:sst2} compares our results with the paper's. The unsanitized baseline (0.9266 against 0.9251) validates our fine-tuning script. Run with the same seed, it gives the same score on both days, so fine-tuning is deterministic; a different seed moves it by 0.6 points. \santext{} reproduces the paper's pattern: run~2 is within 1.0 point at every $\varepsilon$, and run~1 within 3.3. Yet the two runs, with the same seed, differ by 3.7 points at $\varepsilon = 1$ and 1.8 at $\varepsilon = 3$. The difference comes from the sanitizer, which does not reproduce its output under a fixed seed (F1, §\ref{sec:findings}); the paper reports single runs. \santextp{} is within 0.7 points of the paper at every $\varepsilon$.
+
+The trade-off is a cliff. At $\varepsilon = 1$, \santext{} leaves 0.3\% of tokens unchanged and accuracy is near chance; from $\varepsilon = 2$ to $3$, accuracy jumps from 0.59 to 0.83 as the unchanged share rises from 14\% to 74\%. \santextp{} avoids the cliff because it keeps 70\% of the frequent words at every $\varepsilon$ (F5): even at $\varepsilon = 1$ it leaves 55\% of tokens unchanged, which explains its 0.78. What survives is telling. The development sentence \textit{or doing last year 's taxes with your ex-wife .} became \textit{referred doing last year 's taxes ground your ex - wife .} at $\varepsilon = 3$: two function words were replaced, but the personal details came through intact.
+
+\subsection{Privacy: the mask token inference attack}
+The released attack script (\texttt{bert\_inference\_token.py}) does not run. It imports a package (\texttt{ConPre}) that is not in the repository, and with GloVe embeddings it never creates its model. It also passes its inputs in the wrong places. The dataset holds (ids, token-type ids, attention mask, labels), but the model receives \texttt{attention\_mask=batch[1]}, the token-type ids, which are all zero for a single sentence, and \texttt{token\_type\_ids=batch[2]}, the attention mask. Under Transformers 3.3.1 an all-zero mask adds the same $-10{,}000$ to every attention score, which is the same as no mask. BERT therefore attends to the padding of its 64-token input, and every real token is treated as part of a second segment.
+
+We repaired the imports, emulated the released computation exactly and ran a corrected version alongside it. The paper's privacy experiments use BERT embeddings, so $|V| = 30{,}522$, and the authors' dense probability matrix would need about 19\,GB, more than Colab has. We therefore compute the same rows a block at a time with the authors' own function, at a peak of 1.8\,GB. To check this, we ran it with GloVe on SST-2. Its rows match the authors' to within $4\times10^{-7}$ (float32 rounding), and it leaves 0.4, 13.6 and 73.6\% of tokens unchanged at $\varepsilon = 1, 2, 3$, against 0.3, 13.7 and 74.3\% for the authors' code.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$\varepsilon$ & Unch. & Acc. & Paper & Def.\ rel. & Def.\ fixed \\
+\midrule
+$\infty$ & 100\% & 0.927 & 0.925 & 0.395 & 0.395 \\
+8 & 1.3\% & -- & -- & 0.955 & 0.953 \\
+12 & 20.1\% & -- & 0.608 & 0.920 & 0.920 \\
+14 & 49.7\% & -- & 0.755 & 0.811 & 0.810 \\
+16 & 78.2\% & 0.844 & 0.870 & 0.606 & 0.604 \\
+20 & 97.9\% & -- & -- & 0.417 & 0.414 \\
+\bottomrule
+\end{tabular}
+\caption{\santext{} with BERT embeddings on SST-2 (development set, 20,199 word pieces): tokens left unchanged, accuracy (ours; the paper's Table~3), and the defense rate of the mask token inference attack as released and fixed. $\infty$ = no sanitization.}
+\label{tab:attack}
+\end{table}
+
+Table~\ref{tab:attack} shows that the input swap is a real bug but a harmless one here: it changes the defense rate by at most 0.3 points, and no development sentence was long enough to be truncated. The paper's privacy claim reproduces. At $\varepsilon = 16$ the defense rate rises from 0.395 to 0.606, 21 points against the paper's 20, but accuracy falls from 0.927 to 0.844. That is 8.3 points, against the ``4\%'' in the paper's text and 5.5 in its own Table~3; both are single runs of a sampler that does not reproduce. The table also shows how little protection the upper range buys. At $\varepsilon = 20$, 98\% of tokens survive, and the defense rate (0.417) barely exceeds that of unsanitized text (0.395), where BERT already fails to recover 40\% of words from their context.
+
+\subsection{What did not work, and why the numbers differ}
+\label{sec:findings}
+\begin{table*}[t]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}lLLL@{}}
+\toprule
+ & Finding in the released code & Consequence & What we did \\
+\midrule
+F1 & Worker processes are forked with copies of one NumPy random state, and the training and development pools start from the same state & Output depends on scheduling, so it is not reproducible with more than one worker; identical inputs handled in step by different workers get identical outputs & Measured: two runs with seed 42 differ by up to 3.7 points (Table~\ref{tab:sst2}); on synthetic data, 2,000 copies of one text get 1,024 distinct outputs with two workers, 2,000 with one \\
+F2 & \santextp{}'s keep-or-replace coin uses Python's \texttt{random}, which reseeds itself in every worker & \texttt{--seed} never controls \santextp{} & Measured on synthetic data: two runs with seed 42, one worker, share 0.5\% of lines \\
+F3 & Attack script: missing package, no model with GloVe, inputs swapped, truncation & Does not run; the swap itself turns out to matter little & Repaired, emulated and fixed (Table~\ref{tab:attack}) \\
+F4 & $V$ and the sensitive set come from the private data's own word counts & The ``local'' sanitizer needs a central pass over everyone's text & Discussed (§\ref{sec:ethics}) \\
+F5 & Non-sensitive (frequent) words are kept with probability $1-p = 0.7$ at every $\varepsilon$ & Frequent sensitive words, such as bank names, pass through & Measured: 70\% of frequent words survive at every $\varepsilon$ (§\ref{sec:survival}) \\
+F6 & Words without a GloVe vector are replaced uniformly at random, whatever $\varepsilon$ is & $\varepsilon$ does not apply to them & Counted: 417 of SST-2's 14,700 words, 28 of them only because of Unicode normalisation \\
+F7 & A dense $|V| \times |V|$ matrix, about five copies at peak & 5.3\,GB for SST-2, ${\approx}19$\,GB with BERT, ${\approx}160$\,GB for QNLI & Block-wise rows: QNLI sanitized in 9.6 min at 3.7\,GB \\
+F8 & Fine-tuning pinned to Transformers 3.3.1 & Cannot be installed & Re-implemented; the baseline matches \\
+\bottomrule
+\end{tabularx}
+\caption{What did not work as released, its consequence and our response. In the paper itself, results are single runs; the development set is called the test set; the ``4\% utility loss'' at $\varepsilon=16$ is 5.5 points in its own Table~3; and the pre-training gain it reports as 2\% averages 1.5 points.}
+\label{tab:findings}
+\end{table*}
+
+Table~\ref{tab:findings} lists what did not work. Our numbers differ from the paper's for four reasons. The paper gives single runs, and the sampler is not reproducible even with a fixed seed (F1, F2). The libraries are newer: spaCy~3 finds 14,700 word types in SST-2 and 87,751 in QNLI, where the paper reports 14,730 and 88,159. Our fine-tuning is a re-implementation, with the same hyperparameters but a different data order and classifier initialisation. And GPU arithmetic differs. None of these favours one direction, which fits differences that are small and of mixed sign.
+
+% =====================================================================================================
+\section{New Data}
+\label{sec:newdata}
+SST-2 and QNLI hold almost no personal information, yet the paper motivates \santext{} with health and finance. We therefore chose one existing dataset and built one new dataset, both in those domains. Both use the SST-2 file format, so \texttt{run\_SanText.py} and our fine-tuning run on them unchanged.
+
+\subsection{An existing dataset: Dreaddit}
+Dreaddit \citep{turcan-mckeown-2019-dreaddit} contains 3,553 five-sentence segments from 2,929 Reddit posts in ten subreddits across five domains: abuse, anxiety, financial need, PTSD and social. Each segment was labelled \emph{stress} or \emph{not stress} by at least five crowd workers (Fleiss' $\kappa = 0.47$), and segments where half or more answered ``can't tell'' were removed. We use the released 2,838\,/\,715 split (52\% stress); a segment averages 86 words, 7--8 times an SST-2 sentence. We convert it to the SST-2 format (text and label, whitespace normalised) and fine-tune with 256-token inputs and batch 16. Our unsanitized stress $F_1$ is 0.821 (accuracy 0.806), against 0.807 for the authors' BERT-base, which validates the setup. Dreaddit offers genuine disclosures of mental health and financial hardship, at scale and with a published reference result. We download it from its authors and do not redistribute it.
+
+\subsection{A new dataset: Australian health and banking app reviews}
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Stage & Total & Health & Banking \\
+\midrule
+Collected (500 per app) & 4,000 & 2,000 & 2,000 \\
+Exact duplicates removed & 3,712 & 1,951 & 1,761 \\
+Five or more words & 3,127 & 1,726 & 1,401 \\
+English & 2,978 & 1,662 & 1,316 \\
+Three-star and unrated removed & 2,712 & 1,493 & 1,219 \\
+\bottomrule
+\end{tabular}
+\caption{Construction of the review dataset: reviews kept after each stage.}
+\label{tab:funnel}
+\end{table}
+We wanted text with real privacy stakes in \santext{}'s two motivating domains, plus a label that costs nothing to obtain. App-store reviews offer both, because the star rating is a sentiment label, as in IMDb \citep{maas-etal-2011-learning}. On 9 October 2026 we collected the 500 newest Australian English-language Google Play reviews of each of eight apps, using the \texttt{google-play-scraper} package. Four are health apps: mySugr (diabetes), Medisafe and MyTherapy (medication) and Headspace (mental health). Four are banks: CommBank, Westpac, NAB and ANZ. Reviewer names, avatars and developer replies were never stored. Cleaning (Table~\ref{tab:funnel}) normalises whitespace, removes exact duplicates, reviews under five words and non-English reviews (a deterministic word-list test), and drops three-star and unrated reviews. One and two stars become \emph{negative} and four and five \emph{positive}. A split stratified by app type and label gives 2,170 training and 542 test reviews, 41.3\% positive, with a median of 23 words. Banking reviews shrank most in cleaning (to 61\%, against 75\% for health), because they are shorter and more repetitive (``great app''); they are also mostly negative (69\%), while health reviews are balanced. Figure~\ref{fig:reviews} shows examples. We later lost access to the cloud folder that held the only copy of the raw training split; the test split, the sanitized training split and the statistics above survive in the 9 October run outputs (§\ref{sec:differs}).
+
+\begin{figure}[t]
+\centering\scriptsize
+\fbox{\parbox{0.94\columnwidth}{\raggedright
+\textbf{Health (MyTherapy, 5 stars, positive)}: \texttt{Like very much. It helps me organise my medicines}\\[2pt]
+\textbf{Banking (Westpac, 1 star, negative)}: \texttt{So buggy it's almost impossible to do anything but check your balance}\\[2pt]
+\textbf{The same banking review after \santext{} at $\varepsilon = 3$}: \texttt{Yet buggy volume 's almost impossible to do multi but check your balance}
+}}
+\caption{Reviews from the new dataset. We show reviews without personal disclosures verbatim, and describe disclosures only in aggregate (§\ref{sec:ethics}).}
+\label{fig:reviews}
+\end{figure}
+
+\subsection{Annotation of personal disclosures}
+\label{sec:annotation}
+The star label says nothing about privacy, so we annotated a sample for disclosures. Written guidelines (Appendix~\ref{app:guidelines}) ask for four things: the sentiment of the text, judged without the stars; whether the review discloses personal information about its writer or an identifiable person; the words that disclose it; and their categories (health, finance, location, identity, contact). Opinions about the app and generic use (``my meds'') do not count. We drew 100 reviews stratified by app type and star label. All 100 fell in the test split, because the sampler reused the split's seed; this does not bias the sample, and it aligns every annotated review with its sanitized version. The author labelled all 100 by hand (annotator~A). Claude, an LLM, labelled them independently from the same guidelines (annotator~B). Agreement was $\kappa = 0.88$ for sentiment (93\% identical) and $\kappa = 0.56$ for disclosure (90\% identical) \citep{cohen1960coefficient}. Disclosure is the harder call, because it hinges on whether a detail is about the writer. The ten disagreements were resolved by applying the written guidelines. In all ten the guideline label was B's, mostly because A had counted generic phrases such as ``my meds'' as disclosures. The resulting gold labels mark 13 reviews as disclosing: six from health apps and seven from banks, with 48 flagged content words. Star labels match the text's sentiment in 86\% of reviews; 13\% are mixed and 1\% contradict their stars, which estimates the label noise of the star-based labels.
+
+% =====================================================================================================
+\section{Results on the New Data}
+\label{sec:results}
+
+\subsection{Utility across $\varepsilon$}
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+ & None & \multicolumn{3}{c}{\santext{}, $\varepsilon$} & \multicolumn{3}{c}{\santextp{}, $\varepsilon$} \\
+ & & 1 & 2 & 3 & 1 & 2 & 3 \\
+\midrule
+SST-2 & .927 & .506 & .594 & .833 & .783 & .802 & .849 \\
+Dreaddit & .821 & .552 & .550 & .767 & .768 & .753 & .766 \\
+Reviews & .906 & -- & -- & .854 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Utility on the three datasets: accuracy for SST-2 (run~2) and the reviews, stress $F_1$ for Dreaddit (its paper's metric). Seed 42; GloVe embeddings. The reviews have only the 9 October \santext{} run at $\varepsilon = 3$ (§\ref{sec:differs}).}
+\label{tab:newresults}
+\end{table}
+Table~\ref{tab:newresults} shows the same cliff on Dreaddit as on SST-2. With \santext{}, stress $F_1$ stays at 0.55 for $\varepsilon = 1$ and 2, below the 0.68 that labelling every post ``stress'' would score, and recovers to 0.767 at $\varepsilon = 3$. Relative to the unsanitized model, Dreaddit keeps 93\% of its $F_1$ at $\varepsilon = 3$, slightly more than SST-2's 90\%, even though fewer of its tokens survive (67\% against 74\%). Longer texts seem to carry more redundant evidence for their label. \santextp{} is almost flat on Dreaddit (92--94\% of the unsanitized $F_1$ at every $\varepsilon$), because 62--72\% of its tokens survive at every $\varepsilon$; on SST-2 it keeps 84--92\%. The reviews keep 94\% of their unsanitized accuracy at $\varepsilon = 3$ (0.854 against 0.906; macro-$F_1$ 0.849 against 0.902), slightly more than Dreaddit and SST-2. In short, the paper's utility result generalises to longer, informal text with real privacy stakes, and the relative ordering of the mechanisms is the same as in the replication.
+
+\subsection{Which words survive?}
+\label{sec:survival}
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+ & & \multicolumn{2}{c}{SST-2} & \multicolumn{2}{c}{Dreaddit} \\
+ & $\varepsilon$ & rare & frequent & rare & frequent \\
+\midrule
+\santext & 2 & 22.1 & 11.6 & 21.7 & 8.9 \\
+ & 3 & 89.8 & 70.6 & 87.9 & 64.2 \\
+\santextp & 1 & 0.4 & 69.8 & 0.6 & 70.0 \\
+ & 3 & 91.4 & 70.4 & 90.1 & 69.9 \\
+\bottomrule
+\end{tabular}
+\caption{Percentage of development tokens left unchanged, for the rarest 90\% of each dataset's vocabulary (the words \santextp{} treats as sensitive) and the most frequent 10\%. At $\varepsilon = 1$, \santext{} changes almost every word in both classes.}
+\label{tab:classes}
+\end{table}
+A privacy mechanism should change the words that identify people, and these are mostly rare: names, places, conditions, amounts. Table~\ref{tab:classes} shows the opposite for \santext{}: at $\varepsilon = 3$, 88--90\% of rare words survive, against 64--71\% of frequent words. A rare word presumably has fewer close neighbours in the embedding space, so Eq.~\ref{eq:santext} puts most of its probability on the word itself. \santextp{} protects rare words at low $\varepsilon$ (0.4--0.6\% survive at $\varepsilon = 1$), but keeps 70\% of frequent words at every $\varepsilon$, by design (F5). On our reviews the human annotations test this directly. At $\varepsilon = 3$, 41 of the 48 content words flagged in the gold labels (85\%) survived \santext{}, more than the 81\% of all content words in the 542 test reviews. Health terms were the least protected: 25 of 26 survived, including ``antidepressants'' and ``total knee replacement''. So did the full name of a bank employee whom one review thanks. Financial words fared better (13 of 18), partly because amounts were replaced. This fits Table~\ref{tab:classes}: specialised terms are rare, and rare words survive most. We could not run \santextp{} on the reviews (§\ref{sec:differs}); by design it would still keep 70\% of the frequent words, such as ``account'' and ``loan''. Outside the annotated sample, one test review ends with a full name and a date of birth: \santext{} changed most of its ordinary words but left both intact.
+
+\subsection{LLM-as-judge}
+Accuracy shows whether a classifier still works, and word survival whether a token survives. Neither says whether a \emph{reader} can still understand the text, or still learn what it disclosed. We used an LLM as a judge for both, in three roles. As a third annotator, it labels disclosures in the 100 original reviews, which tests the judge against our gold labels. As a meaning judge, it scores meaning preservation from 1 to 5 for 100 texts per dataset under each mechanism and $\varepsilon$ (for the reviews, the 100 annotated ones under \santext{} at $\varepsilon = 3$). As a disclosure judge, it decides whether a sanitized review still reveals the information its original disclosed. To keep sensitive text on our own machine, the judge is an open-weights model, Qwen2.5-7B-Instruct \citep{qwen2.5}, quantized to 4 bits and run locally. Following \citet{zheng2023judging}, we fix the prompts (Appendix~\ref{app:prompts}) and read the answer from the probabilities the model assigns to the allowed answer tokens, so every judgment is deterministic and comes with a confidence. The judge put at least 98.6\% of its probability on the allowed answers (over 99.9\% for all but 7 of 1,586 items), and it scored all 60 pairs of identical texts 5.0, as it should. To check the judge, the author rated 36 of its items blind: 24 meaning items and 12 disclosure items, shuffled together and shown without the judge's answers.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{\santext{}, $\varepsilon$} & \multicolumn{3}{c}{\santextp{}, $\varepsilon$} \\
+ & 1 & 2 & 3 & 1 & 2 & 3 \\
+\midrule
+SST-2 & 1.02 & 1.07 & 2.70 & 1.69 & 1.93 & 2.68 \\
+Dreaddit & 1.00 & 1.01 & 2.21 & 1.60 & 1.83 & 2.11 \\
+Reviews & -- & -- & 2.78 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Meaning preserved, as judged by the LLM (1 = unrelated or unintelligible, 3 = topic survives but details lost, 5 = same meaning); mean over 100 texts per cell. Reviews: \santext{} at $\varepsilon = 3$ only.}
+\label{tab:judge}
+\end{table}
+The judge's scores rise with the share of unchanged tokens (Table~\ref{tab:judge}). At $\varepsilon = 3$, where BERT keeps 90--94\% of its unsanitized score, the judge rates the meaning at 2.1--2.8, between ``mostly lost'' and ``topic survives''. The human check qualifies this. The judge ranks texts much as the author does (Spearman $\rho = 0.85$ over the 24 meaning items), but it is stricter: it scores them 1.9 on average against the author's 3.0, and at $\varepsilon = 3$ 2.7 against 3.9 (quadratic-weighted $\kappa = 0.45$). We therefore read its scores as a ranking, not as absolute levels. On that reading, Dreaddit retains more label signal than SST-2 but less meaning (2.21 against 2.70), consistent with the redundancy explanation above, while at $\varepsilon = 3$ a human reader still recovers most of the meaning.
+
+As a third annotator on the 100 original reviews, the judge agrees with the gold labels at $\kappa = 0.47$ (83\% identical) and with annotator~A at $\kappa = 0.54$, close to our two annotators' agreement ($\kappa = 0.56$). It misses two disclosures but over-flags generic mentions such as ``my meds'' and ``my card'', marking 26 reviews as disclosing against 13 in the gold labels; all five reviews that annotator~A flagged and the guidelines rejected are among them. Sanitization barely changes its view: after \santext{} at $\varepsilon = 3$, it still finds a disclosure in 9 of the 13 disclosing reviews (11 before). Asked whether each sanitized review still reveals the information the annotators flagged, it answers yes for all 13, with a mean probability of 0.99. The author agreed on all 12 of these items in the human check.
+
+\subsection{Where the evaluation differs from the replication}
+\label{sec:differs}
+The new datasets are scored on held-out test splits that we created, not on GLUE development sets. Dreaddit reports stress $F_1$, as in its paper, and uses 256-token inputs. Both new datasets use batch 16, because they are small, and each setting was run once with seed 42. The vocabulary, as in the released code, comes from each dataset's own text. The reviews have a single sanitized setting, \santext{} at $\varepsilon = 3$ from 9 October: without the raw training split we could not run other values of $\varepsilon$ or \santextp{}. Their judge items use the test split and its sanitized version, rebuilt from the 9 October outputs.
+
+% =====================================================================================================
+\section{Ethical Considerations}
+\label{sec:ethics}
+\paragraph{In the original paper.} The paper has no ethics or limitations section, although it handles health text and makes privacy claims; ethics statements were optional at ACL in 2021 \citep{benotti-blackburn-2022-ethics}. Four issues stand out. First, \emph{assurance}: ``differential privacy'' reads as a strong guarantee, but metric LDP holds per token and composes over a document, so a 23-word review sanitized at $\varepsilon = 3$ per token carries a document-level budget of about 69; the empirical evidence is a single attack. Second, \emph{sensitivity}: the sensitive set is chosen from the private data's own word counts (F4), which requires a central pass over the raw text that the local threat model is meant to avoid, and frequency is not sensitivity (§\ref{sec:survival}). Third, \emph{rigour}: the released attack swaps its inputs (F3), so the published privacy evidence may overstate protection, and the sampler cannot be reproduced (F1, F2). Fourth, \emph{open science}: MedSTS is rightly restricted, but it means one of three results cannot be checked by anyone without a data use agreement, and the paper does not say which release it used. The unit's example DP-MLM states that its data are public, so ``no harm was inflicted'', and that privacy is protected ``empirically and by proxy'' \citep{meisenbacher-etal-2024-dp}. Our reviews show that public text can still carry health and financial disclosures, even a full name with a date of birth, and our attack audit shows how fragile a proxy can be.
+
+\paragraph{If we published on our new data.} Under the Australian Code for the Responsible Conduct of Research \citep{australiancode2018}, \emph{honesty} and \emph{transparency} require us to report who produced each label (the author, an LLM, and how the disagreements were resolved), every deviation from the original code, and the use of AI assistance. \emph{Respect} applies to the reviewers. They posted publicly but did not consent to research use, and 13\% of the sampled reviews disclose health or financial details. Health information is sensitive information under the Privacy Act 1988 \citep{privacyact1988}. A review can be matched to its author's public Google Play name by searching its text, so the data are not non-identifiable, and the National Statement's exemption for negligible-risk research on non-identifiable data \citep{nationalstatement2023} would likely not apply: a paper would need ethics review. We minimised data: no names, avatars or replies were stored; figures show only non-disclosing reviews; results are reported in aggregate. We release the test split's text and star labels (542 reviews) for research use only, without reviewer identifiers and with a removal process, and replace two person names and a date of birth with placeholders. A formal publication would also need to confirm that the platform's terms allow redistribution. Dreaddit's posts about abuse and mental health are used under their release terms, not redistributed, and not quoted. Annotator~B processed the 100 sampled reviews through a commercial LLM service, which would need to be declared and approved in a formal study. The LLM judge, by contrast, runs locally. As \citet{karamolegkou2025ethical} find, over a third of ACL ethics statements identify no ethical issue at all; we have tried to name ours specifically.
+
+% =====================================================================================================
+\section{Conclusions and Reflections}
+\label{sec:conclusion}
+\textbf{RQ1.} The released sanitizer, run unchanged, reproduces the paper's utility results: \santext{} within 1.0 point in one run and 3.3 in another, \santextp{} within 0.7. But the same seed does not give the same output, the code around the sanitizer does not run as released, and the privacy claim holds only in part. The defense rate rises by 21 points at $\varepsilon = 16$, as reported, while accuracy falls by 8.3 points rather than 4\%. \textbf{RQ2.} Utility carries over to longer, informal text. Dreaddit keeps 93\% of its $F_1$ at $\varepsilon = 3$, and under \santextp{} 92--94\% at every $\varepsilon$. The reviews keep 94\% of their accuracy at $\varepsilon = 3$. \textbf{RQ3.} Not well. \santext{} leaves rare words, the kind that identify people, unchanged more often than frequent ones (88--90\% against 64--71\% at $\varepsilon = 3$), and \santextp{} keeps 70\% of frequent words whatever $\varepsilon$ is. On the reviews, 85\% of the words our annotators flagged as disclosing survive \santext{} at $\varepsilon = 3$, more than ordinary content words. The LLM judge finds that every disclosing review still reveals what it disclosed at $\varepsilon = 3$, and the author agreed in every case checked; at that $\varepsilon$ a human reader also recovers most of the meaning. Where \santext{} is useful, it does not hide what people disclose.
+
+Four reflections. First, annotation was harder than expected: disclosure agreement was only moderate, and most disagreements were about whether a generic phrase such as ``my meds'' is personal. Clearer guidelines with more worked examples would help. Second, only 13 of 100 reviews disclose anything, so a better design would oversample likely disclosures, for example by keyword, before annotating. Third, replication involved more than running the code: four of the eight problems we found (F3--F6) concern privacy rather than utility, and none is visible from the paper's tables. Fourth, we kept the only copy of the raw reviews in one cloud folder and lost access to it, so the review experiments cannot be rerun in full. The Code's requirement to keep secure and complete records of research data is practical advice: a second copy would have avoided this.
+
+\section*{Limitations}
+Most new-data settings were run once, with one seed, and the reviews only with \santext{} at $\varepsilon = 3$. The annotation sample is small: 100 reviews, 13 of them disclosing, with 48 flagged words. The LLM judge is a single model, checked against one person's ratings of 36 items, and it scores meaning lower than that person does, so we use its scores comparatively. We sanitized QNLI but did not fine-tune on it, could not use MedSTS, did not replicate sanitization-aware pre-training, ran the privacy experiment only on SST-2, and measured BERT-embedding utility only at $\varepsilon = 16$. All new-data experiments use GloVe embeddings. Our fine-tuning script is a re-implementation, and our BERT-embedding results come from a block-wise sanitizer that we validated against, but which is not, the authors' code.
+
+\section*{Acknowledgements and Use of AI Assistants}
+Claude (Anthropic) helped write and debug the code and draft the text, and served as annotator~B. The author labelled annotator~A's data by hand, ran all experiments, checked every number against the run outputs, and read every reference.
+
+\bibliography{custom}
+
+\appendix
+\section{Reproducing Our Results}
+\label{app:repro}
+Four Colab notebooks in the repository reproduce everything: \texttt{COMP8240\_SanText\_update.ipynb} (9 October: SST-2 \santext{}, the review dataset, the first new-data runs), \texttt{COMP8240\_final\_runs.ipynb} (\santextp{}, Dreaddit at $\varepsilon = 1$--3, reproducibility checks; about 1.5\,h on a T4) and \texttt{COMP8240\_privacy\_and\_judge.ipynb} (dataset statistics, the BERT-embedding privacy experiment, the LLM judge; about 1\,h); these three write their outputs to Google Drive and skip finished steps after a disconnect. \texttt{COMP8240\_reviews\_judge.ipynb} runs the judge on the reviews (about 10\,min), with items that \texttt{prepare\_reviews\_judge.py} rebuilds from the 9 October outputs.
+
+\section{Annotation Guidelines}
+\label{app:guidelines}
+For each review, judge the text only, ignoring the stars. (1) \emph{Sentiment}: positive, negative or mixed. (2) \emph{Discloses personal information?} Yes if it reveals something about the writer or an identifiable person that they might not want linked to them: \textsc{health} (conditions, symptoms, medications, treatment, pregnancy, mental health), \textsc{finance} (amounts, debts, income, account problems, which bank), \textsc{location} (suburb, address, workplace, branch), \textsc{identity} (names, age, family members, job) or \textsc{contact} (email, phone, account or reference numbers). Opinions about the app and generic use (``I use it daily'', ``my meds'') do not count. (3) Copy the disclosing words, separated by semicolons, and (4) give each a category. When unsure, answer no and explain in a note.
+
+\section{LLM-Judge Prompts}
+\label{app:prompts}
+All prompts share a system message asking for a single-token answer. \emph{Meaning}: ``Text A is an original text. Text B was made from Text A by replacing some of its words with other words. How well does Text B preserve the meaning of Text A?'' followed by a 1--5 scale (1 unrelated or unintelligible; 3 the topic survives but important details are lost; 5 the same meaning). \emph{Disclosure}: the guideline definition above, then ``Answer yes or no.'' \emph{Leftover disclosure}: ``An original app review disclosed this personal information about its writer: [flagged words and categories]. \ldots{} Does the text below still reveal that information, or enough of it that a reader could infer it?'' Texts are cut at 200 words.
+
+\end{document}

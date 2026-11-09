@@ -1,0 +1,228 @@
+{
+ "judged": "346/346",
+ "min_format_mass": 0.9859,
+ "meaning_mean": {
+  "SanText": [
+   2.78,
+   100
+  ],
+  "identical": [
+   5.0,
+   20
+  ]
+ },
+ "disclosure_original": {
+  "n": 100,
+  "judge_yes": 26,
+  "gold_yes": 13,
+  "kappa_gold": 0.473,
+  "agree_gold": 0.83,
+  "kappa_A": 0.535,
+  "agree_A": 0.85,
+  "judge_yes_gold_no": 15,
+  "judge_no_gold_yes": 2
+ },
+ "disclosure_SanText": {
+  "n": 100,
+  "judge_yes": 21,
+  "yes_among_gold_yes": "9/13",
+  "yes_among_gold_no": "12/87"
+ },
+ "residual": {
+  "SanText": {
+   "still_reveals": "13/13",
+   "by_category": {
+    "health:yes": 6,
+    "finance:yes": 7
+   },
+   "mean_p_yes": 0.988,
+   "items": [
+    [
+     "r001",
+     "health",
+     "yes",
+     1.0
+    ],
+    [
+     "r003",
+     "finance",
+     "yes",
+     0.966
+    ],
+    [
+     "r011",
+     "finance",
+     "yes",
+     0.943
+    ],
+    [
+     "r013",
+     "health",
+     "yes",
+     0.999
+    ],
+    [
+     "r014",
+     "finance",
+     "yes",
+     0.996
+    ],
+    [
+     "r021",
+     "health",
+     "yes",
+     0.999
+    ],
+    [
+     "r025",
+     "finance",
+     "yes",
+     0.981
+    ],
+    [
+     "r029",
+     "health",
+     "yes",
+     0.997
+    ],
+    [
+     "r035",
+     "finance",
+     "yes",
+     0.998
+    ],
+    [
+     "r040",
+     "finance",
+     "yes",
+     0.998
+    ],
+    [
+     "r080",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r094",
+     "health",
+     "yes",
+     0.966
+    ],
+    [
+     "r099",
+     "health",
+     "yes",
+     0.999
+    ]
+   ]
+  },
+  "original": {
+   "still_reveals": "13/13",
+   "by_category": {
+    "finance:yes": 7,
+    "health:yes": 6
+   },
+   "mean_p_yes": 0.983,
+   "items": [
+    [
+     "r001",
+     "health",
+     "yes",
+     1.0
+    ],
+    [
+     "r003",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r011",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r013",
+     "health",
+     "yes",
+     1.0
+    ],
+    [
+     "r014",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r021",
+     "health",
+     "yes",
+     1.0
+    ],
+    [
+     "r025",
+     "finance",
+     "yes",
+     0.949
+    ],
+    [
+     "r029",
+     "health",
+     "yes",
+     1.0
+    ],
+    [
+     "r035",
+     "finance",
+     "yes",
+     0.829
+    ],
+    [
+     "r040",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r080",
+     "finance",
+     "yes",
+     1.0
+    ],
+    [
+     "r094",
+     "health",
+     "yes",
+     0.998
+    ],
+    [
+     "r099",
+     "health",
+     "yes",
+     1.0
+    ]
+   ]
+  }
+ },
+ "human_check": {
+  "missing": [],
+  "meaning": {
+   "n": 24,
+   "spearman_expected": 0.846,
+   "kappa_quadratic": 0.449,
+   "exact": 0.375,
+   "within_1": 0.667,
+   "mean_human": 3,
+   "mean_judge": 1.92
+  },
+  "residual": {
+   "n": 12,
+   "agree": 12,
+   "kappa": NaN,
+   "human_yes": 12,
+   "judge_yes": 12
+  }
+ }
+}

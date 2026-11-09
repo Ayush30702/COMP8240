@@ -1,0 +1,28 @@
+{
+  "task": "QNLI",
+  "embedding": "glove",
+  "epsilon": 3.0,
+  "seed": 42,
+  "block": 1024,
+  "vocabulary": 87751,
+  "rows_with_vectors": 74023,
+  "full_matrix_gb": 21.92,
+  "splits": {
+    "train": {
+      "rows": 104743,
+      "tokens": 4424366,
+      "without_vector": 35947,
+      "rows_computed": 71231,
+      "share_unchanged": 0.6643180062408942
+    },
+    "dev": {
+      "rows": 5463,
+      "tokens": 236995,
+      "without_vector": 1927,
+      "rows_computed": 16883,
+      "share_unchanged": 0.6640646427139814
+    }
+  },
+  "seconds": 578.5,
+  "peak_memory_gb": 3.7
+}

@@ -1,0 +1,35 @@
+{
+  "task": "SST-2",
+  "embedding": "bert",
+  "epsilon": 14.0,
+  "seed": 42,
+  "block": 1024,
+  "vocabulary": 30522,
+  "rows_with_vectors": 30522,
+  "full_matrix_gb": 3.73,
+  "splits": {
+    "train": {
+      "rows": 67349,
+      "tokens": 762341,
+      "without_vector": 0,
+      "rows_computed": 11570,
+      "share_unchanged": 0.49746766866795833
+    },
+    "dev": {
+      "rows": 872,
+      "tokens": 20199,
+      "without_vector": 0,
+      "rows_computed": 4542,
+      "share_unchanged": 0.49685628001386206
+    }
+  },
+  "check": {
+    "rows_checked": 300,
+    "reference": "blocks of 97 rows (block-size invariance; the full matrix does not fit in memory)",
+    "max_abs_diff": 8.149072527885437e-10,
+    "rows_identical": 299,
+    "argmax_identical": 300
+  },
+  "seconds": 47.3,
+  "peak_memory_gb": 1.75
+}

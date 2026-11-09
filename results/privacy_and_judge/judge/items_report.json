@@ -1,0 +1,24 @@
+{
+  "sources": {
+    "sst2/SanText/eps1": "notebook A/B",
+    "sst2/SanText/eps2": "notebook A/B",
+    "sst2/SanText/eps3": "notebook A/B",
+    "sst2/SanText_plus/eps1": "notebook A/B",
+    "sst2/SanText_plus/eps2": "notebook A/B",
+    "sst2/SanText_plus/eps3": "notebook A/B",
+    "dreaddit/SanText/eps1": "notebook A/B",
+    "dreaddit/SanText/eps2": "notebook A/B",
+    "dreaddit/SanText/eps3": "notebook A/B",
+    "dreaddit/SanText_plus/eps1": "notebook A/B",
+    "dreaddit/SanText_plus/eps2": "notebook A/B",
+    "dreaddit/SanText_plus/eps3": "notebook A/B"
+  },
+  "counts": {
+    "meaning/sst2": 620,
+    "meaning/dreaddit": 620
+  },
+  "review_texts_found": {},
+  "human_check_rows": {
+    "meaning": 16
+  }
+}

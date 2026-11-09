@@ -1,0 +1,81 @@
+{
+  "run_name": "dreaddit__SanText__eps2.00__seed42",
+  "data_dir": "/content/work/san/dreaddit/SanText/seed_42/eps_2.00",
+  "format": "single",
+  "label_map": {
+    "0": 0,
+    "1": 1
+  },
+  "n_train": 2838,
+  "n_dev": 715,
+  "skipped_rows": {
+    "train": 0,
+    "dev": 0
+  },
+  "settings": {
+    "data_dir": "/content/work/san/dreaddit/SanText/seed_42/eps_2.00",
+    "run_name": "dreaddit__SanText__eps2.00__seed42",
+    "output_root": "results",
+    "model_name": "bert-base-uncased",
+    "max_seq_length": 256,
+    "batch_size": 16,
+    "grad_accum": 1,
+    "eval_batch_size": 128,
+    "learning_rate": 2e-05,
+    "epochs": 3,
+    "warmup_ratio": 0.0,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "seed": 42,
+    "fp16": true,
+    "format": "auto",
+    "max_train_samples": null,
+    "log_every": 200,
+    "save_model": false
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cu130",
+    "transformers": "5.22.1",
+    "device": "Tesla T4",
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39"
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.700598184647185,
+      "dev": {
+        "accuracy": 0.5132867132867133,
+        "macro_f1": 0.5008185276132697,
+        "f1_label_index_1": 0.4219269102990033
+      },
+      "elapsed_min": 0.89
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.6913023815396127,
+      "dev": {
+        "accuracy": 0.5412587412587413,
+        "macro_f1": 0.5412578439196908,
+        "f1_label_index_1": 0.5406162464985994
+      },
+      "elapsed_min": 1.5
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.6520039419109902,
+      "dev": {
+        "accuracy": 0.5468531468531469,
+        "macro_f1": 0.546830985915493,
+        "f1_label_index_1": 0.55
+      },
+      "elapsed_min": 2.21
+    }
+  ],
+  "final_dev": {
+    "accuracy": 0.5468531468531469,
+    "macro_f1": 0.546830985915493,
+    "f1_label_index_1": 0.55
+  },
+  "runtime_min": 2.21
+}

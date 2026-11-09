@@ -1,0 +1,32 @@
+{
+  "name": "eps14",
+  "sanitized": "/content/workc/san_bert/SST-2/eps_14.00/dev.tsv",
+  "model": "bert-base-uncased",
+  "documents": 872,
+  "max_seq_length_released": 64,
+  "mixed_precision": true,
+  "variants": {
+    "released": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.1888,
+      "defense_rate": 0.8112,
+      "positions_kept_by_sanitizer": 10036,
+      "defense_rate_kept": 0.8061,
+      "positions_changed_by_sanitizer": 10163,
+      "defense_rate_changed": 0.8162,
+      "seconds": 17.4
+    },
+    "fixed": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.19,
+      "defense_rate": 0.81,
+      "positions_kept_by_sanitizer": 10036,
+      "defense_rate_kept": 0.8042,
+      "positions_changed_by_sanitizer": 10163,
+      "defense_rate_changed": 0.8158,
+      "seconds": 9.1
+    }
+  }
+}

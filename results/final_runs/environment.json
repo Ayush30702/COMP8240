@@ -1,0 +1,13 @@
+{
+  "python": "3.13.16",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.22.1",
+  "spacy": "3.8.18",
+  "numpy": "2.4.6",
+  "scipy": "1.16.3",
+  "scikit-learn": "1.6.1",
+  "gpu": "Tesla T4",
+  "cpu_cores": 2,
+  "ram_gb": 13.6,
+  "multiprocessing_start_method": "fork"
+}

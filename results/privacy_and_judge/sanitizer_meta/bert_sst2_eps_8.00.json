@@ -1,0 +1,28 @@
+{
+  "task": "SST-2",
+  "embedding": "bert",
+  "epsilon": 8.0,
+  "seed": 42,
+  "block": 1024,
+  "vocabulary": 30522,
+  "rows_with_vectors": 30522,
+  "full_matrix_gb": 3.73,
+  "splits": {
+    "train": {
+      "rows": 67349,
+      "tokens": 762341,
+      "without_vector": 0,
+      "rows_computed": 11570,
+      "share_unchanged": 0.013960943987008438
+    },
+    "dev": {
+      "rows": 872,
+      "tokens": 20199,
+      "without_vector": 0,
+      "rows_computed": 4542,
+      "share_unchanged": 0.012822416951334225
+    }
+  },
+  "seconds": 113.9,
+  "peak_memory_gb": 1.76
+}

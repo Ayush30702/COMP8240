@@ -1,0 +1,69 @@
+{
+  "funnel": [
+    {
+      "stage": "collected",
+      "total": 4000,
+      "health": 2000,
+      "finance": 2000
+    },
+    {
+      "stage": "non-empty text",
+      "total": 4000,
+      "health": 2000,
+      "finance": 2000
+    },
+    {
+      "stage": "duplicates removed",
+      "total": 3712,
+      "health": 1951,
+      "finance": 1761
+    },
+    {
+      "stage": ">= 5 words",
+      "total": 3127,
+      "health": 1726,
+      "finance": 1401
+    },
+    {
+      "stage": "English only",
+      "total": 2978,
+      "health": 1662,
+      "finance": 1316
+    },
+    {
+      "stage": "3-star/unrated dropped",
+      "total": 2712,
+      "health": 1493,
+      "finance": 1219
+    }
+  ],
+  "final": {
+    "reviews": 2712,
+    "train": 2170,
+    "dev": 542,
+    "share_positive": 0.413,
+    "by_category_and_label": {
+      "finance_neg": 840,
+      "finance_pos": 379,
+      "health_neg": 752,
+      "health_pos": 741
+    },
+    "by_app": {
+      "mySugr (diabetes)": 323,
+      "Medisafe (medications)": 394,
+      "MyTherapy (medications)": 390,
+      "Headspace (mental health)": 386,
+      "CommBank": 319,
+      "Westpac": 353,
+      "NAB": 294,
+      "ANZ": 253
+    },
+    "words_per_review": {
+      "mean": 31.9,
+      "median": 23.0,
+      "max": 183
+    },
+    "word_types": 5782,
+    "santext_peak_memory_gb_upper_bound": 0.67
+  }
+}

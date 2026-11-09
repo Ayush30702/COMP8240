@@ -1,0 +1,28 @@
+{
+  "task": "SST-2",
+  "embedding": "glove",
+  "epsilon": 3.0,
+  "seed": 42,
+  "block": 1024,
+  "vocabulary": 14700,
+  "rows_with_vectors": 14283,
+  "full_matrix_gb": 0.82,
+  "splits": {
+    "dev": {
+      "rows": 872,
+      "tokens": 17614,
+      "without_vector": 72,
+      "rows_computed": 4227,
+      "share_unchanged": 0.7363460883388214
+    }
+  },
+  "check": {
+    "rows_checked": 2000,
+    "reference": "full |V| x |V| matrix, as run_SanText.py computes it",
+    "max_abs_diff": 3.5762786865234375e-07,
+    "rows_identical": 1304,
+    "argmax_identical": 2000
+  },
+  "seconds": 17.5,
+  "peak_memory_gb": 5.11
+}

@@ -1,0 +1,48 @@
+{
+  "SST-2": {
+    "train_rows": 67349,
+    "header": "sentence\tlabel",
+    "examples": [
+      "hide new secretions from the parental units \t0",
+      "contains no wit , only labored gags \t0",
+      "it 's a charming and often affecting journey . \t1"
+    ],
+    "train_labels": {
+      "0": 29780,
+      "1": 37569
+    },
+    "train_words_mean": 9.4,
+    "dev_rows": 872,
+    "dev_labels": {
+      "1": 444,
+      "0": 428
+    },
+    "dev_words_mean": 19.5,
+    "test_rows": 1821,
+    "vocabulary_authors_construction": 14700
+  },
+  "QNLI": {
+    "train_rows": 104743,
+    "header": "index\tquestion\tsentence\tlabel",
+    "examples": [
+      "0\tWhen did the third Digimon series begin?\tUnlike the two seasons before it and most of the seasons that followed, Digimon Tamers takes a darker and more realistic approach to its story featuring Digimon who do not reincarnate after their deaths and more complex character development in the original Japanese.\tnot_entailment",
+      "1\tWhich missile batteries often have individual launchers several kilometres from one another?\tWhen MANPADS is operated by specialists, batteries may have several dozen teams deploying separately in small sections; self-propelled air defence guns may deploy in pairs.\tnot_entailment",
+      "0\tWhat came into force after the new constitution was herald?\tAs of that day, the new constitution heralding the Second Republic came into force.\tentailment"
+    ],
+    "train_labels": {
+      "not_entailment": 52366,
+      "entailment": 52377
+    },
+    "train_question_words_mean": 9.9,
+    "train_sentence_words_mean": 26.5,
+    "dev_rows": 5463,
+    "dev_labels": {
+      "entailment": 2702,
+      "not_entailment": 2761
+    },
+    "dev_question_words_mean": 10.0,
+    "dev_sentence_words_mean": 27.6,
+    "test_rows": 5463,
+    "vocabulary_authors_construction": 87751
+  }
+}

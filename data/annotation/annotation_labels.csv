@@ -1,0 +1,101 @@
+ann_id,review_key,category,A_disclosure,gold_disclosure,gold_words,gold_categories,resolution
+1,a976f32825fc,health,yes,yes,antidepressants,HEALTH,agreed
+2,7b82d5caecb5,finance,no,no,,,agreed
+3,cca519ff0422,finance,yes,yes,$50; $100; my payid; my account,FINANCE; FINANCE; FINANCE; FINANCE,agreed
+4,4e41a9d4f089,health,no,no,,,agreed
+5,255c97c1d604,finance,no,no,,,agreed
+6,602f91fcf62b,finance,no,no,,,agreed
+7,03a49232483f,health,no,no,,,agreed
+8,a2f830f6f6fa,health,yes,no,,,resolved by guideline
+9,71734f54c9c2,health,no,no,,,agreed
+10,efa15a518d98,health,no,no,,,agreed
+11,7450a2747fa7,finance,yes,yes,[NAME]; Shellhabour Branch,IDENTITY; LOCATION,agreed
+12,3201b9f72e2b,finance,no,no,,,agreed
+13,20c372fd13f0,health,no,yes,accu chek device,HEALTH,resolved by guideline
+14,7bc5703237e8,finance,no,yes,my closed account; Financial Industry Ombudsman,FINANCE; FINANCE,resolved by guideline
+15,f6d5959a2d4c,health,no,no,,,agreed
+16,b089e098d1d6,health,no,no,,,agreed
+17,cf5666f901a5,finance,no,no,,,agreed
+18,ca6caf759266,health,no,no,,,agreed
+19,a84501229e8b,health,no,no,,,agreed
+20,d428327804eb,health,no,no,,,agreed
+21,fec8bb8b9569,health,yes,yes,Diagnosed type 2; blood results; Accu-Chek,HEALTH; HEALTH; HEALTH,agreed
+22,17ac6b497c7e,health,no,no,,,agreed
+23,94e86c9e2af2,health,no,no,,,agreed
+24,54b09f434240,health,no,no,,,agreed
+25,c8935db47793,finance,no,yes,Westpac,FINANCE,resolved by guideline
+26,e363003145a5,finance,no,no,,,agreed
+27,42e1f9077155,health,no,no,,,agreed
+28,30a55a007874,health,no,no,,,agreed
+29,c5ef5899a845,health,yes,yes,blood sugars; glucose levels,HEALTH; HEALTH,agreed
+30,df0130d41bb1,finance,no,no,,,agreed
+31,29c084378bc0,finance,no,no,,,agreed
+32,4936243f8bec,health,no,no,,,agreed
+33,40e6641fe634,finance,no,no,,,agreed
+34,e5fee1300e24,finance,no,no,,,agreed
+35,74385bfd9164,finance,yes,yes,19% interest; a loan,FINANCE; FINANCE,agreed
+36,ddef1bc95f5e,health,yes,no,,,resolved by guideline
+37,982c027827cc,health,no,no,,,agreed
+38,e10b844f9249,finance,no,no,,,agreed
+39,feddd740b2e0,finance,no,no,,,agreed
+40,093fcb5a57f6,finance,yes,yes,my account; my money; 3 days,FINANCE; FINANCE; FINANCE,agreed
+41,21b1e36b3eb2,health,no,no,,,agreed
+42,1b5981ba46b5,health,no,no,,,agreed
+43,401281108784,finance,no,no,,,agreed
+44,e1eb1f0039c2,finance,no,no,,,agreed
+45,0587c298c9a0,finance,no,no,,,agreed
+46,95ad57b7b7da,finance,no,no,,,agreed
+47,53ec7a4f522f,finance,no,no,,,agreed
+48,cecd0eb02063,health,no,no,,,agreed
+49,5aca4106e005,finance,no,no,,,agreed
+50,5864119ce5e5,health,no,no,,,agreed
+51,254a31c63e7c,health,no,no,,,agreed
+52,f6f9dc5e7c1b,finance,no,no,,,agreed
+53,b11b9ea510aa,health,no,no,,,agreed
+54,848637ca25e1,finance,no,no,,,agreed
+55,2d8131e500c8,health,no,no,,,agreed
+56,9f8a30e5e557,finance,no,no,,,agreed
+57,5f31234dd849,health,no,no,,,agreed
+58,d0aabf97362f,finance,no,no,,,agreed
+59,a11284447543,health,no,no,,,agreed
+60,dcad8c8dcf60,finance,no,no,,,agreed
+61,f6e05f745477,finance,no,no,,,agreed
+62,dc0a6eeb9d8e,finance,no,no,,,agreed
+63,ca11c01c959b,finance,no,no,,,agreed
+64,57e6cdf16441,health,no,no,,,agreed
+65,850a649de8f9,health,no,no,,,agreed
+66,73e11995246d,health,no,no,,,agreed
+67,45ca35406b41,finance,no,no,,,agreed
+68,0f053c1c834e,finance,no,no,,,agreed
+69,65e70a65125f,finance,no,no,,,agreed
+70,ee0e1535100b,health,no,no,,,agreed
+71,513b06c8dac1,health,no,no,,,agreed
+72,e783e28e7821,finance,no,no,,,agreed
+73,e16a1cb237b9,health,no,no,,,agreed
+74,5a00be712216,health,no,no,,,agreed
+75,fbd9b9a72c5a,finance,no,no,,,agreed
+76,89a41831cf14,health,no,no,,,agreed
+77,bd823a5106ec,health,no,no,,,agreed
+78,0f8db9b48a90,finance,no,no,,,agreed
+79,6a90ce5b020e,health,no,no,,,agreed
+80,4ad90394b35f,finance,no,yes,mortgage,FINANCE,resolved by guideline
+81,e52db57a7adc,finance,no,no,,,agreed
+82,6f2e40e4cd5d,finance,no,no,,,agreed
+83,32c35d3d582a,finance,no,no,,,agreed
+84,c30cc9b61f33,health,no,no,,,agreed
+85,26b2d8a13499,health,yes,no,,,resolved by guideline
+86,05a118cfa9ed,finance,yes,no,,,resolved by guideline
+87,d7c09d9ec163,health,no,no,,,agreed
+88,32bc6894b95b,health,yes,no,,,resolved by guideline
+89,332de3edee79,finance,no,no,,,agreed
+90,7983bbc472fb,health,no,no,,,agreed
+91,f5cff08bdf86,finance,no,no,,,agreed
+92,3fc2788b42b8,finance,no,no,,,agreed
+93,79528fb32976,finance,no,no,,,agreed
+94,35f757c1aadf,health,no,yes,provider I've seen virtually; session,HEALTH; HEALTH,resolved by guideline
+95,d8a505bcb730,finance,no,no,,,agreed
+96,d9eec2e813ca,health,no,no,,,agreed
+97,4d0d665a9da6,health,no,no,,,agreed
+98,1a474530ebaf,finance,no,no,,,agreed
+99,5cad9127a067,health,yes,yes,multiple medications; total knee replacement; daily vitamins,HEALTH; HEALTH; HEALTH,agreed
+100,9aa861a07b54,finance,no,no,,,agreed

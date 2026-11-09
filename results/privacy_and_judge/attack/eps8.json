@@ -1,0 +1,32 @@
+{
+  "name": "eps8",
+  "sanitized": "/content/workc/san_bert/SST-2/eps_8.00/dev.tsv",
+  "model": "bert-base-uncased",
+  "documents": 872,
+  "max_seq_length_released": 64,
+  "mixed_precision": true,
+  "variants": {
+    "released": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.0453,
+      "defense_rate": 0.9547,
+      "positions_kept_by_sanitizer": 259,
+      "defense_rate_kept": 0.9421,
+      "positions_changed_by_sanitizer": 19940,
+      "defense_rate_changed": 0.9549,
+      "seconds": 15.3
+    },
+    "fixed": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.0467,
+      "defense_rate": 0.9533,
+      "positions_kept_by_sanitizer": 259,
+      "defense_rate_kept": 0.9421,
+      "positions_changed_by_sanitizer": 19940,
+      "defense_rate_changed": 0.9535,
+      "seconds": 8.0
+    }
+  }
+}

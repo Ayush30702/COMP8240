@@ -1,0 +1,32 @@
+{
+  "name": "unsanitized",
+  "sanitized": "none",
+  "model": "bert-base-uncased",
+  "documents": 872,
+  "max_seq_length_released": 64,
+  "mixed_precision": true,
+  "variants": {
+    "released": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.6047,
+      "defense_rate": 0.3953,
+      "positions_kept_by_sanitizer": 20199,
+      "defense_rate_kept": 0.3953,
+      "positions_changed_by_sanitizer": 0,
+      "defense_rate_changed": null,
+      "seconds": 14.8
+    },
+    "fixed": {
+      "positions": 20199,
+      "skipped_truncated": 0,
+      "attack_success": 0.6053,
+      "defense_rate": 0.3947,
+      "positions_kept_by_sanitizer": 20199,
+      "defense_rate_kept": 0.3947,
+      "positions_changed_by_sanitizer": 0,
+      "defense_rate_changed": null,
+      "seconds": 7.6
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "run_name": "dreaddit__SanText_plus__eps1.00__seed42",
+  "data_dir": "/content/work/san/dreaddit/SanText_plus/seed_42/eps_1.00/sword_0.90_p_0.30",
+  "format": "single",
+  "label_map": {
+    "0": 0,
+    "1": 1
+  },
+  "n_train": 2838,
+  "n_dev": 715,
+  "skipped_rows": {
+    "train": 0,
+    "dev": 0
+  },
+  "settings": {
+    "data_dir": "/content/work/san/dreaddit/SanText_plus/seed_42/eps_1.00/sword_0.90_p_0.30",
+    "run_name": "dreaddit__SanText_plus__eps1.00__seed42",
+    "output_root": "results",
+    "model_name": "bert-base-uncased",
+    "max_seq_length": 256,
+    "batch_size": 16,
+    "grad_accum": 1,
+    "eval_batch_size": 128,
+    "learning_rate": 2e-05,
+    "epochs": 3,
+    "warmup_ratio": 0.0,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "seed": 42,
+    "fp16": true,
+    "format": "auto",
+    "max_train_samples": null,
+    "log_every": 200,
+    "save_model": false
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cu130",
+    "transformers": "5.22.1",
+    "device": "Tesla T4",
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39"
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6236699206775493,
+      "dev": {
+        "accuracy": 0.7188811188811188,
+        "macro_f1": 0.7183168986340678,
+        "f1_label_index_1": 0.7309236947791166
+      },
+      "elapsed_min": 0.89
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.44859715090708785,
+      "dev": {
+        "accuracy": 0.7384615384615385,
+        "macro_f1": 0.7359304794351454,
+        "f1_label_index_1": 0.7617834394904458
+      },
+      "elapsed_min": 1.51
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.3135003052400739,
+      "dev": {
+        "accuracy": 0.7440559440559441,
+        "macro_f1": 0.7414339944787083,
+        "f1_label_index_1": 0.767471410419314
+      },
+      "elapsed_min": 2.22
+    }
+  ],
+  "final_dev": {
+    "accuracy": 0.7440559440559441,
+    "macro_f1": 0.7414339944787083,
+    "f1_label_index_1": 0.767471410419314
+  },
+  "runtime_min": 2.22
+}

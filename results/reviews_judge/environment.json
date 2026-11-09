@@ -1,0 +1,7 @@
+{
+  "python": "3.13.16",
+  "torch": "2.14.1+cu130",
+  "transformers": "5.22.1",
+  "gpu": "Tesla T4",
+  "bitsandbytes": "0.50.2"
+}

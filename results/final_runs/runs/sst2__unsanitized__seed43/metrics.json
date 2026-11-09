@@ -1,0 +1,81 @@
+{
+  "run_name": "sst2__unsanitized__seed43",
+  "data_dir": "/content/work/data/SST-2",
+  "format": "single",
+  "label_map": {
+    "0": 0,
+    "1": 1
+  },
+  "n_train": 67349,
+  "n_dev": 872,
+  "skipped_rows": {
+    "train": 0,
+    "dev": 0
+  },
+  "settings": {
+    "data_dir": "/content/work/data/SST-2",
+    "run_name": "sst2__unsanitized__seed43",
+    "output_root": "results",
+    "model_name": "bert-base-uncased",
+    "max_seq_length": 128,
+    "batch_size": 64,
+    "grad_accum": 1,
+    "eval_batch_size": 128,
+    "learning_rate": 2e-05,
+    "epochs": 3,
+    "warmup_ratio": 0.0,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "seed": 43,
+    "fp16": true,
+    "format": "auto",
+    "max_train_samples": null,
+    "log_every": 300,
+    "save_model": false
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cu130",
+    "transformers": "5.22.1",
+    "device": "Tesla T4",
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39"
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.22219842114085145,
+      "dev": {
+        "accuracy": 0.9174311926605505,
+        "macro_f1": 0.9173959950530222,
+        "f1_label_index_1": 0.9191011235955056
+      },
+      "elapsed_min": 2.65
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.10954182338878753,
+      "dev": {
+        "accuracy": 0.9220183486238532,
+        "macro_f1": 0.9218192941375019,
+        "f1_label_index_1": 0.925764192139738
+      },
+      "elapsed_min": 5.21
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.07222422859998524,
+      "dev": {
+        "accuracy": 0.9208715596330275,
+        "macro_f1": 0.920771427781355,
+        "f1_label_index_1": 0.9235880398671096
+      },
+      "elapsed_min": 7.77
+    }
+  ],
+  "final_dev": {
+    "accuracy": 0.9208715596330275,
+    "macro_f1": 0.920771427781355,
+    "f1_label_index_1": 0.9235880398671096
+  },
+  "runtime_min": 7.77
+}

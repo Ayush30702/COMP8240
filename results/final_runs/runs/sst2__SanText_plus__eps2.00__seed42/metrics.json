@@ -1,0 +1,81 @@
+{
+  "run_name": "sst2__SanText_plus__eps2.00__seed42",
+  "data_dir": "/content/work/san/sst2/SanText_plus/seed_42/eps_2.00/sword_0.90_p_0.30",
+  "format": "single",
+  "label_map": {
+    "0": 0,
+    "1": 1
+  },
+  "n_train": 67349,
+  "n_dev": 872,
+  "skipped_rows": {
+    "train": 0,
+    "dev": 0
+  },
+  "settings": {
+    "data_dir": "/content/work/san/sst2/SanText_plus/seed_42/eps_2.00/sword_0.90_p_0.30",
+    "run_name": "sst2__SanText_plus__eps2.00__seed42",
+    "output_root": "results",
+    "model_name": "bert-base-uncased",
+    "max_seq_length": 128,
+    "batch_size": 64,
+    "grad_accum": 1,
+    "eval_batch_size": 128,
+    "learning_rate": 2e-05,
+    "epochs": 3,
+    "warmup_ratio": 0.0,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "seed": 42,
+    "fp16": true,
+    "format": "auto",
+    "max_train_samples": null,
+    "log_every": 300,
+    "save_model": false
+  },
+  "environment": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cu130",
+    "transformers": "5.22.1",
+    "device": "Tesla T4",
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39"
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.503972807274698,
+      "dev": {
+        "accuracy": 0.7809633027522935,
+        "macro_f1": 0.7796625192652418,
+        "f1_label_index_1": 0.7965921192758252
+      },
+      "elapsed_min": 3.72
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.3857368158648836,
+      "dev": {
+        "accuracy": 0.801605504587156,
+        "macro_f1": 0.8014151160724277,
+        "f1_label_index_1": 0.8075639599555061
+      },
+      "elapsed_min": 7.39
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.3109613976106118,
+      "dev": {
+        "accuracy": 0.801605504587156,
+        "macro_f1": 0.8013858333234589,
+        "f1_label_index_1": 0.8079911209766925
+      },
+      "elapsed_min": 10.86
+    }
+  ],
+  "final_dev": {
+    "accuracy": 0.801605504587156,
+    "macro_f1": 0.8013858333234589,
+    "f1_label_index_1": 0.8079911209766925
+  },
+  "runtime_min": 10.86
+}

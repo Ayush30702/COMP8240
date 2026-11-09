@@ -1,0 +1,64 @@
+{
+  "collected_at": "2026-10-09T04:43:31+00:00",
+  "country": "au",
+  "lang": "en",
+  "per_app_target": 500,
+  "apps": [
+    {
+      "app_id": "com.mysugr.android.companion",
+      "app_name": "mySugr (diabetes)",
+      "category": "health",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "com.medisafe.android.client",
+      "app_name": "Medisafe (medications)",
+      "category": "health",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "eu.smartpatient.mytherapy",
+      "app_name": "MyTherapy (medications)",
+      "category": "health",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "com.getsomeheadspace.android",
+      "app_name": "Headspace (mental health)",
+      "category": "health",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "com.commbank.netbank",
+      "app_name": "CommBank",
+      "category": "finance",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "org.westpac.bank",
+      "app_name": "Westpac",
+      "category": "finance",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "au.com.nab.mobile",
+      "app_name": "NAB",
+      "category": "finance",
+      "collected": 500,
+      "error": null
+    },
+    {
+      "app_id": "com.anz.android.gomoney",
+      "app_name": "ANZ",
+      "category": "finance",
+      "collected": 500,
+      "error": null
+    }
+  ]
+}
